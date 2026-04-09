@@ -1,0 +1,5 @@
+{
+  "name": "Medan Sports GIS",
+  "description": "A modern GIS application to discover sports facilities in Medan City, Indonesia, featuring interactive maps, geolocation, and crowdsourced data.",
+  "requestFramePermissions": ["geolocation", "camera"]
+}
