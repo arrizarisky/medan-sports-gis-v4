@@ -363,7 +363,7 @@ export default function App() {
 
           {/* Floating Action Buttons (Map View) */}
           {!isAddFormOpen && (
-            <div className="absolute bottom-25 left-1/2 -translate-x-1/2 flex items-center gap-2 z-1000 md:hidden">
+            <div className="absolute bottom-25 left-1/2 -translate-x-1/2 flex items-center gap-2 z-999 md:hidden">
               <Button 
                 variant={viewMode === 'map' ? 'default' : 'secondary'}
                 className="rounded-full shadow-2xl h-14 px-8 text-base font-bold border-2 border-white/20 backdrop-blur-sm"
@@ -406,7 +406,7 @@ export default function App() {
 
         {/* Auth Dialog */}
         <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
-          <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none">
+          <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none z-1000">
             <Auth onSuccess={() => setIsAuthOpen(false)} />
           </DialogContent>
         </Dialog>
