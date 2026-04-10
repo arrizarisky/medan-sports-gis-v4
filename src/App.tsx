@@ -191,7 +191,7 @@ export default function App() {
       <header className="p-4 border-b bg-white/80 backdrop-blur-md z-10 shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-lg border border-primary/10">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
               <img 
                 src={logoPng} 
                 alt="Medan Sports Logo" 
