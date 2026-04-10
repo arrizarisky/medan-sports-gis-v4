@@ -200,8 +200,8 @@ export default function App() {
               />
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-tight">Medan Sports</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">GIS Discovery</p>
+              <h1 className="font-bold text-lg leading-tight">Medan Sports Area</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Sport Facility Finder</p>
             </div>
           </div>
 
