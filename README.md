@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="1200" height="475" alt="SportGIS Banner" src="public/banner.png" />
+  <img width="2544" height="416" alt="bannerv2" src="https://github.com/user-attachments/assets/dd5bf837-aa12-4276-b50b-3beea4cadc3b" />
 </div>
 
 <h1 align="center">Medan Sport Area</h1>
@@ -18,13 +18,14 @@
 
 ## 🌍 Tentang Project
 
-**SportGIS Medan** adalah platform berbasis web dan mobile yang membantu pengguna menemukan berbagai fasilitas olahraga seperti:
+**Medan Sport Area** adalah platform GIS untuk memenuhi matakuliah Sistem Informasi Geografis berbasis web dan mobile yang membantu pengguna menemukan berbagai fasilitas olahraga seperti:
 
 - 🏋️ Gym
 - ⚽ Futsal & Mini Soccer
 - 🏸 Badminton
 - 🎾 Padel
 - 🏃 Jogging Track
+- dll
 
 Dengan fitur utama:
 - Peta interaktif (Leaflet.js)
@@ -51,7 +52,7 @@ Dengan fitur utama:
 - **Frontend:** (React), Tailwind CSS
 - **Map:** Leaflet.js
 - **Mobile:** Responsive
-- **Database:** PostgreSQL / Supabase (Free tier)
+- **Database:** PostgreSQL / Supabase
 - **Core Logic:** Haversine Formula + Geolocation API
 
 ---
