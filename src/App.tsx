@@ -363,10 +363,10 @@ export default function App() {
 
           {/* Floating Action Buttons (Map View) */}
           {!isAddFormOpen && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-[1000] md:hidden">
+            <div className="absolute bottom-25 left-1/2 -translate-x-1/2 flex items-center gap-2 z-1000 md:hidden">
               <Button 
                 variant={viewMode === 'map' ? 'default' : 'secondary'}
-                className="rounded-full shadow-xl"
+                className="rounded-full shadow-2xl h-14 px-8 text-base font-bold border-2 border-white/20 backdrop-blur-sm"
                 onClick={() => setViewMode('map')}
               >
                 <MapIcon className="w-4 h-4 mr-2" />
@@ -374,7 +374,7 @@ export default function App() {
               </Button>
               <Button 
                 variant={viewMode === 'list' ? 'default' : 'secondary'}
-                className="rounded-full shadow-xl"
+                className="rounded-full shadow-2xl h-14 px-8 text-base font-bold border-2 border-white/20 backdrop-blur-sm"
                 onClick={() => setViewMode('list')}
               >
                 <ListIcon className="w-4 h-4 mr-2" />
