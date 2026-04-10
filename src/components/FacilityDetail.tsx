@@ -3,14 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Navigation, ExternalLink, CheckCircle2 } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import CommentSection from "./CommentSection";
 
 interface FacilityDetailProps {
   facility: Facility;
   onClose: () => void;
   userLocation: [number, number] | null;
+  user: any;
 }
 
-export default function FacilityDetail({ facility, onClose, userLocation }: FacilityDetailProps) {
+export default function FacilityDetail({ facility, onClose, userLocation, user }: FacilityDetailProps) {
   const openInGoogleMaps = () => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${facility.lat},${facility.lng}`, "_blank");
   };
@@ -120,6 +122,8 @@ export default function FacilityDetail({ facility, onClose, userLocation }: Faci
               Open in Google Maps
             </Button>
           </div>
+
+          <CommentSection facilityId={facility.id} user={user} />
         </div>
       </ScrollArea>
     </div>

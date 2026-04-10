@@ -7,6 +7,7 @@ import FacilityCard from "./components/FacilityCard";
 import FilterBar from "./components/FilterBar";
 import FacilityDetail from "./components/FacilityDetail";
 import AddFacilityForm from "./components/AddFacilityForm";
+import Auth from "./components/Auth";
 import { calculateDistance } from "./lib/geoUtils";
 import { 
   Search, 
@@ -15,11 +16,14 @@ import {
   Plus, 
   Navigation,
   Loader2,
-  Info
+  Info,
+  User,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "motion/react";
@@ -38,10 +42,24 @@ export default function App() {
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchFacilities();
     detectLocation();
+
+    // Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchFacilities = async () => {
@@ -173,7 +191,7 @@ export default function App() {
       <header className="p-4 border-b bg-white/80 backdrop-blur-md z-10 shrink-0">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden shadow-lg border border-primary/10">
               <img 
                 src={logoPng} 
                 alt="Medan Sports Logo" 
@@ -199,21 +217,59 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
-            <Sheet open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
-              <SheetTrigger render={<Button size="sm" className="rounded-full gap-2" />}>
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Place</span>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full h-full p-0 flex flex-col border-none">
-                <SheetHeader className="p-6 border-b shrink-0">
-                  <SheetTitle>Submit New Facility</SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-hidden">
-                  <AddFacilityForm onSuccess={handleAddSuccess} userLocation={userLocation} />
+          <div className="flex items-center gap-2">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex flex-col items-end mr-2">
+                  <span className="text-xs font-bold leading-none">{user.email.split('@')[0]}</span>
+                  <span className="text-[10px] text-muted-foreground">Contributor</span>
                 </div>
-              </SheetContent>
-            </Sheet>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-full gap-2"
+                onClick={() => setIsAuthOpen(true)}
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Log In</span>
+              </Button>
+            )}
+
+            <div className="flex items-center gap-2">
+              <Sheet open={isAddFormOpen} onOpenChange={(open) => {
+                if (open && !user) {
+                  setIsAuthOpen(true);
+                  toast.info("Please log in to add a new place");
+                  return;
+                }
+                setIsAddFormOpen(open);
+              }}>
+                <SheetTrigger asChild>
+                  <Button size="sm" className="rounded-full gap-2">
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Add Place</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full h-full p-0 flex flex-col border-none">
+                  <SheetHeader className="p-6 border-b shrink-0">
+                    <SheetTitle>Submit New Facility</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-hidden">
+                    <AddFacilityForm onSuccess={handleAddSuccess} userLocation={userLocation} user={user} />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>
@@ -342,10 +398,18 @@ export default function App() {
                 facility={selectedFacility} 
                 onClose={() => setSelectedFacility(null)} 
                 userLocation={userLocation}
+                user={user}
               />
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Auth Dialog */}
+        <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
+          <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none">
+            <Auth onSuccess={() => setIsAuthOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

@@ -14,4 +14,14 @@ export interface Facility {
   distance?: number;
 }
 
+export interface Comment {
+  id: string;
+  facility_id: string;
+  user_id: string;
+  user_email: string;
+  content: string;
+  rating: number;
+  created_at: string;
+}
+
 export type SportType = Facility["type"] | "all";

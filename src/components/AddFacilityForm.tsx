@@ -32,6 +32,7 @@ L.Icon.Default.mergeOptions({
 interface AddFacilityFormProps {
   onSuccess: (facility: Facility) => void;
   userLocation: [number, number] | null;
+  user: any;
 }
 
 const facilityOptions = ["Parking", "Toilet", "Shower", "Canteen", "Lighting", "AC", "Locker", "Cafe"];
@@ -70,7 +71,7 @@ function MapEvents({ setPosition }: { setPosition: (pos: [number, number]) => vo
   return null;
 }
 
-export default function AddFacilityForm({ onSuccess, userLocation }: AddFacilityFormProps) {
+export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFacilityFormProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -178,7 +179,8 @@ export default function AddFacilityForm({ onSuccess, userLocation }: AddFacility
         facilities: formData.facilities,
         lat: formData.lat,
         lng: formData.lng,
-        photos: allPhotos.length > 0 ? allPhotos : ["https://picsum.photos/seed/new/800/600"]
+        photos: allPhotos.length > 0 ? allPhotos : ["https://picsum.photos/seed/new/800/600"],
+        user_id: user?.id
       };
 
       const { data, error } = await supabase
