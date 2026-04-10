@@ -1,20 +1,57 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="1200" height="475" alt="SportGIS Banner" src="public/banner.png" />
 </div>
 
-# Run and deploy your AI Studio app
+<h1 align="center">Medan Sport Area</h1>
 
-This contains everything you need to run your app locally.
+<p align="center">
+  Sistem Informasi Geografis (GIS) untuk menemukan tempat olahraga terdekat di Kota Medan secara cepat, mudah, dan interaktif.
+</p>
 
-View your app in AI Studio: https://ai.studio/apps/5a16697c-08ad-46fb-8587-4146ecf69678
+<p align="center">
+  🚀 Dibangun menggunakan React, Leaflet.js, dan PostgreSQL <br/>
+  📍 Fitur pencarian lokasi terdekat berbasis geolocation <br/>
+  ⚡ 100% menggunakan teknologi gratis & open-source
+</p>
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## 🌍 Tentang Project
 
+**SportGIS Medan** adalah platform berbasis web dan mobile yang membantu pengguna menemukan berbagai fasilitas olahraga seperti:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- 🏋️ Gym
+- ⚽ Futsal & Mini Soccer
+- 🏸 Badminton
+- 🎾 Padel
+- 🏃 Jogging Track
+
+Dengan fitur utama:
+- Peta interaktif (Leaflet.js)
+- Deteksi lokasi pengguna (Browser Geolocation)
+- Pencarian tempat terdekat (Haversine Formula)
+- Filter berdasarkan harga, fasilitas, dan jarak
+- Detail informasi lengkap setiap tempat
+- Track Rute Sport dari posisi pengguna
+
+---
+
+## 📱 Fitur Unggulan
+
+- 📍 **Auto Detect Location**
+- 🔎 **Smart Nearby Search**
+- 🎯 **Advanced Filtering System**
+- 🗺️ **Interactive Map Experience**
+- 📝 **User-generated location input (mobile app)**
+
+---
+
+## 🚀 Tech Stack
+
+- **Frontend:** (React), Tailwind CSS
+- **Map:** Leaflet.js
+- **Mobile:** Responsive
+- **Database:** PostgreSQL / Supabase (Free tier)
+- **Core Logic:** Haversine Formula + Geolocation API
+
+---
