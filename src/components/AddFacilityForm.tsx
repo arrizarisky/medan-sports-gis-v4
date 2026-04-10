@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Facility } from "@/src/types";
 import { supabase } from "@/src/lib/supabase";
-import { MapPin, Loader2, Image as ImageIcon, Search, Plus } from "lucide-react";
+import { MapPin, Loader2, Image as ImageIcon, Search, Plus, Camera } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import L from "leaflet";
 
 // Fix for default marker icons in Leaflet
@@ -88,7 +89,9 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isPhotoSourceOpen, setIsPhotoSourceOpen] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -354,7 +357,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
               ))}
               <div 
                 className="flex flex-col items-center justify-center aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setIsPhotoSourceOpen(true)}
               >
                 <Plus className="w-6 h-6 text-muted-foreground mb-1" />
                 <span className="text-[10px] font-medium text-muted-foreground">Add Photo</span>
@@ -363,7 +366,15 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
             
             <input 
               type="file" 
-              ref={fileInputRef}
+              ref={cameraInputRef}
+              className="hidden" 
+              accept="image/*" 
+              capture="environment"
+              onChange={handleFileChange}
+            />
+            <input 
+              type="file" 
+              ref={galleryInputRef}
               className="hidden" 
               accept="image/*" 
               multiple
@@ -505,6 +516,49 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
           Submit Facility
         </Button>
       </form>
+
+      {/* Photo Source Selection Dialog */}
+      <Dialog open={isPhotoSourceOpen} onOpenChange={setIsPhotoSourceOpen}>
+        <DialogContent className="sm:max-w-[400px] p-6">
+          <DialogHeader>
+            <DialogTitle>Add Photo</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <Button 
+              variant="outline" 
+              className="flex flex-col h-32 gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all"
+              onClick={() => {
+                cameraInputRef.current?.click();
+                setIsPhotoSourceOpen(false);
+              }}
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Camera className="w-6 h-6 text-primary" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold">Camera</p>
+                <p className="text-[10px] text-muted-foreground">Take a photo now</p>
+              </div>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex flex-col h-32 gap-3 border-2 hover:border-primary hover:bg-primary/5 transition-all"
+              onClick={() => {
+                galleryInputRef.current?.click();
+                setIsPhotoSourceOpen(false);
+              }}
+            >
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+                <ImageIcon className="w-6 h-6 text-secondary-foreground" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold">Gallery</p>
+                <p className="text-[10px] text-muted-foreground">Choose from files</p>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </ScrollArea>
   );
 }
