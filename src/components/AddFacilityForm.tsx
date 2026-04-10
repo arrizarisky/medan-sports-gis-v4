@@ -11,7 +11,6 @@ import { MapPin, Loader2, Image as ImageIcon, Search, Plus } from "lucide-react"
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in Leaflet
 // @ts-ignore
@@ -368,7 +367,6 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
               className="hidden" 
               accept="image/*" 
               multiple
-              capture="environment"
               onChange={handleFileChange}
             />
 
