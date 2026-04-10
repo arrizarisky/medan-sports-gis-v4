@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, LogIn, UserPlus } from "lucide-react";
 
+// @ts-ignore
+import googleIcon from "../assets/icon/google.png";
+
 interface AuthProps {
   onSuccess?: () => void;
 }
@@ -81,12 +84,7 @@ export default function Auth({ onSuccess }: AuthProps) {
           className="w-full h-11 border-primary/20 hover:bg-secondary/50 transition-all"
           onClick={handleGoogleLogin}
         >
-          <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-            <path
-              fill="#EA4335"
-              d="M12.48 10.92v3.28h7.84c-.24 1.84-2.21 5.39-7.84 5.39-4.84 0-8.74-4.01-8.74-8.91s3.9-8.91 8.74-8.91c2.76 0 4.6 1.18 5.66 2.18l2.59-2.5c-1.66-1.55-3.82-2.5-8.25-2.5C5.38 1 0 6.38 0 13s5.38 12 12 12c6.88 0 11.21-4.84 11.21-11.39 0-.77-.08-1.35-.23-1.93l-10.5-.06z"
-            />
-          </svg>
+          <img src={googleIcon} alt="Google" className="w-4 h-4 mr-2" />
           Continue with Google
         </Button>
 
