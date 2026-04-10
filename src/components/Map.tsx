@@ -6,21 +6,57 @@ import { Facility } from "@/src/types";
 import { useEffect, useRef } from "react";
 import { Star, Navigation } from "lucide-react";
 
-// Fix for default marker icons in Leaflet
 // @ts-ignore
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import pinBadminton from "../assets/icon/pin-badminton.png";
 // @ts-ignore
-import markerIcon from "leaflet/dist/images/marker-icon.png";
+import pinFutsal from "../assets/icon/pin-futsal.png";
 // @ts-ignore
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import pinRunning from "../assets/icon/pin-running.png";
+// @ts-ignore
+import pinGym from "../assets/icon/pin-gym.png";
+// @ts-ignore
+import pinDefault from "../assets/icon/pin-default.png";
 
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
+// 1. Definisikan mapping path gambarnya saja
+const categoryIcons: Record<string, string> = {
+  futsal: pinFutsal,
+  "mini soccer": pinFutsal,
+  badminton: pinBadminton,
+  padel: pinBadminton,
+  gym: pinGym,
+  jogging: pinRunning,
+  default: pinDefault, // Berikan default jika tipe tidak ditemukan
+};
+
+// 2. Buat fungsi untuk menghasilkan L.icon (Leaflet Icon)
+const getLeafletIcon = (type: string) => {
+  const iconUrl = categoryIcons[type.toLowerCase()] || categoryIcons.default;
+  
+  return L.icon({
+    iconUrl: iconUrl,
+    iconSize: [40, 60],
+    iconAnchor: [20, 40], // Titik tengah bawah
+    popupAnchor: [0, -20],
+  });
+};
+
+
+
+// // Fix for default marker icons in Leaflet
+// // @ts-ignore
+// import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+// // @ts-ignore
+// import markerIcon from "leaflet/dist/images/marker-icon.png";
+// // @ts-ignore
+// import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// // @ts-ignore
+// delete L.Icon.Default.prototype._getIconUrl;
+// L.Icon.Default.mergeOptions({
+//   iconUrl: markerIcon,
+//   iconRetinaUrl: markerIcon2x,
+//   shadowUrl: markerShadow,
+// });
 
 interface MapProps {
   facilities: Facility[];
@@ -113,6 +149,7 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         <Marker
           key={facility.id}
           position={[facility.lat, facility.lng]}
+          icon={getLeafletIcon(facility.type)}
           eventHandlers={{
             click: () => onSelectFacility(facility),
           }}
