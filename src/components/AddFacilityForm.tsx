@@ -182,7 +182,9 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
         lat: formData.lat,
         lng: formData.lng,
         photos: allPhotos.length > 0 ? allPhotos : ["https://picsum.photos/seed/new/800/600"],
-        user_id: user?.id
+        user_id: user?.id,
+        contributor_name: user?.user_metadata?.display_name || user?.user_metadata?.full_name || null,
+        contributor_email: user?.email
       };
 
       const { data, error } = await supabase

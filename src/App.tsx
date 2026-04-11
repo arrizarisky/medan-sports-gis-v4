@@ -58,9 +58,40 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
+        // Inactivity Timeout Logic (15 minutes)
+    let inactivityTimer: NodeJS.Timeout;
+    const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
 
-    return () => subscription.unsubscribe();
-  }, []);
+    const resetTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        if (user) {
+          supabase.auth.signOut();
+          toast.info("Session expired due to inactivity", {
+            description: "Please log in again to continue."
+          });
+        }
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Events to track user activity
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    if (user) {
+      activityEvents.forEach(event => {
+        window.addEventListener(event, resetTimer);
+      });
+      resetTimer();
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user]);
 
   const fetchFacilities = async () => {
     try {
@@ -179,7 +210,7 @@ export default function App() {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-background">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground font-medium">Loading Medan Sports GIS...</p>
+        <p className="text-muted-foreground font-medium">Sebentar kami siapkan tempat olahrga terbaik untuk anda...</p>
       </div>
     );
   }

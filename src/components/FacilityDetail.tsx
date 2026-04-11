@@ -59,7 +59,15 @@ export default function FacilityDetail({ facility, onClose, userLocation, user }
         <div className="p-6 space-y-6">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <h2 className="text-2xl font-bold">{facility.name}</h2>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold">{facility.name}</h2>
+                {(facility.contributor_name || facility.contributor_email) && (
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-500 bg-blue-500/5 px-2 py-0.5 rounded-full w-fit border border-primary/10">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Added by {facility.contributor_name || facility.contributor_email}
+                  </div>
+                )}
+              </div>
               <div className="flex flex-col items-end">
                 <div className="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-lg">
                   <Star className="w-4 h-4 fill-current" />

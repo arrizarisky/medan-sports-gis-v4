@@ -12,6 +12,9 @@ export interface Facility {
   description: string;
   photos: string[];
   distance?: number;
+  user_id?: string;
+  contributor_name?: string;
+  contributor_email?: string;
 }
 
 export interface Comment {
