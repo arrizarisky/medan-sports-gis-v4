@@ -58,6 +58,13 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
+
+     return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
         // Inactivity Timeout Logic (15 minutes)
     let inactivityTimer: NodeJS.Timeout;
     const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
@@ -85,7 +92,6 @@ export default function App() {
     }
 
     return () => {
-      subscription.unsubscribe();
       if (inactivityTimer) clearTimeout(inactivityTimer);
       activityEvents.forEach(event => {
         window.removeEventListener(event, resetTimer);

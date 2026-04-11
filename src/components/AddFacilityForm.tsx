@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Facility } from "@/src/types";
 import { supabase } from "@/src/lib/supabase";
-import { MapPin, Loader2, Image as ImageIcon, Search, Plus, Camera } from "lucide-react";
+import { MapPin, Loader2, Image as ImageIcon, Search, Plus, Camera, Clock } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -86,6 +86,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
     lng: userLocation ? userLocation[1] : 98.6722,
     photoUrls: [""] as string[],
     address: "",
+    opening_hours: "",
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -184,7 +185,8 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
         photos: allPhotos.length > 0 ? allPhotos : ["https://picsum.photos/seed/new/800/600"],
         user_id: user?.id,
         contributor_name: user?.user_metadata?.display_name || user?.user_metadata?.full_name || null,
-        contributor_email: user?.email
+        contributor_email: user?.email,
+        opening_hours: formData.opening_hours
       };
 
       const { data, error } = await supabase
@@ -455,6 +457,32 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
             value={formData.description}
             onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
           />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="opening_hours">Opening Hours</Label>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-[10px] px-2"
+              onClick={() => setFormData(prev => ({ ...prev, opening_hours: "24 Hours" }))}
+            >
+              Set as 24 Hours
+            </Button>
+          </div>
+          <div className="relative">
+            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              id="opening_hours" 
+              placeholder="e.g. 08:00 - 22:00 or 24 Hours" 
+              className="pl-10"
+              value={formData.opening_hours}
+              onChange={e => setFormData(prev => ({ ...prev, opening_hours: e.target.value }))}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground">Specify operational days/times (e.g. Mon-Sun: 09:00 - 21:00)</p>
         </div>
 
         <div className="space-y-2">

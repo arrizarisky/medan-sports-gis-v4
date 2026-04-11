@@ -1,7 +1,7 @@
 import { Facility } from "@/src/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Navigation, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Star, MapPin, Navigation, ExternalLink, CheckCircle2, Clock } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CommentSection from "./CommentSection";
 
@@ -84,6 +84,12 @@ export default function FacilityDetail({ facility, onClose, userLocation, user }
               <MapPin className="w-4 h-4" />
               <span>Medan City, North Sumatra</span>
             </div>
+            {facility.opening_hours && (
+              <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium text-primary">{facility.opening_hours}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
