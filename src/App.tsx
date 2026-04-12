@@ -243,8 +243,8 @@ export default function App() {
           </div>
 
           <div className="flex-1 max-w-md hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
               <Input 
                 placeholder="Search facilities..." 
                 className="pl-12 h-12 bg-slate-100/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-primary/20 transition-all text-sm font-medium"
@@ -400,7 +400,7 @@ export default function App() {
 
           {/* Floating Action Buttons (Map View) */}
           {!isAddFormOpen && (
-            <div className="absolute bottom-25 left-1/2 -translate-x-1/2 flex items-center gap-2 z-999 md:hidden">
+            <div className="absolute bottom-25 left-1/2 -translate-x-1/2 flex items-center gap-2 z-999 md:hidden bg-white/20 backdrop-blur-xl p-2 rounded-[2rem] soft-shadow-lg border border-white/30">
               <Button 
                 variant={viewMode === 'map' ? 'default' : 'secondary'}
                 className="rounded-full shadow-2xl h-14 px-8 text-base font-bold border-2 border-white/20 backdrop-blur-sm"
