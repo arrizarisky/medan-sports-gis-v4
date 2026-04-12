@@ -247,7 +247,7 @@ export default function App() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="Search facilities..." 
-                className="pl-10 bg-secondary/50 border-none rounded-full"
+                className="pl-12 h-12 bg-slate-100/50 border-none rounded-2xl focus-visible:ring-2 focus-visible:ring-primary/20 transition-all text-sm font-medium"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
@@ -274,7 +274,7 @@ export default function App() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="rounded-full gap-2"
+                className="rounded-2xl h-11 px-6 gap-2 font-bold border-slate-200 hover:bg-slate-50 transition-all"
                 onClick={() => setIsAuthOpen(true)}
               >
                 <User className="w-4 h-4" />
@@ -292,7 +292,7 @@ export default function App() {
                 setIsAddFormOpen(open);
               }}>
                 <SheetTrigger asChild>
-                  <Button size="sm" className="rounded-full gap-2 md:hidden">
+                  <Button size="sm" className="rounded-2xl h-11 px-6 gap-2 font-black soft-shadow-lg hover:scale-105 transition-transform md:hidden">
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Add Place</span>
                   </Button>

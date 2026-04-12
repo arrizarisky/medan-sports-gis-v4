@@ -143,7 +143,7 @@ export default function FacilityDetail({ facility, onClose, userLocation, user, 
           </div>
 
           <div className="pt-4">
-            <CommentSection facilityId={facility.id} user={user} setAuthIsOpen={setAuthIsOpen} />
+            <CommentSection facilityId={facility.id} user={user} setIsAuthOpen={setAuthIsOpen} />
           </div>
         </div>
       </ScrollArea>
