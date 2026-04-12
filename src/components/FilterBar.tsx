@@ -32,9 +32,9 @@ export default function FilterBar({
   onDistanceChange
 }: FilterBarProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex w-max space-x-2 p-1">
+        <div className="flex w-max space-x-3 p-1">
           {sportTypes.map((sport) => {
             const Icon = sport.icon;
             const isActive = selectedType === sport.value;
@@ -43,26 +43,29 @@ export default function FilterBar({
                 key={sport.value}
                 variant={isActive ? "default" : "outline"}
                 size="sm"
-                className={`rounded-full gap-2 transition-all ${isActive ? 'scale-105 shadow-sm' : 'hover:bg-secondary'}`}
+                className={`rounded-2xl h-11 px-6 gap-2.5 transition-all font-bold border-slate-100 ${isActive ? 'scale-105 soft-shadow-lg' : 'hover:bg-slate-50 text-slate-500'}`}
                 onClick={() => onTypeChange(sport.value)}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 {sport.label}
               </Button>
             );
           })}
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal" className="hidden"/>
       </ScrollArea>
 
-      <div className="flex items-center gap-3 px-1">
-        <div className="flex-1 flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+      <div className="flex items-center gap-4 px-1">
+        <div className="flex-1 flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-100/50 px-4 py-2 rounded-2xl border border-slate-50">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filters</span>
+          </div>
           <Select value={maxPrice} onValueChange={onPriceChange}>
-            <SelectTrigger className="h-8 text-xs rounded-full bg-secondary/30 border-none">
+            <SelectTrigger className="h-15 text-xs rounded-2xl bg-white border-slate-100 soft-shadow font-bold text-slate-600 w-[100px]">
               <SelectValue placeholder="Price Range" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl border-none soft-shadow-lg">
               <SelectItem value="all">All Prices</SelectItem>
               <SelectItem value="0">Free Only</SelectItem>
               <SelectItem value="50000">Under Rp 50k</SelectItem>
@@ -72,10 +75,10 @@ export default function FilterBar({
           </Select>
 
           <Select value={maxDistance} onValueChange={onDistanceChange}>
-            <SelectTrigger className="h-8 text-xs rounded-full bg-secondary/30 border-none">
+            <SelectTrigger className="h-15 text-xs rounded-2xl bg-white border-slate-100 soft-shadow font-bold text-slate-600 w-[100px]">
               <SelectValue placeholder="Distance" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl border-none soft-shadow-lg">
               <SelectItem value="all">Any Distance</SelectItem>
               <SelectItem value="1">Within 1 km</SelectItem>
               <SelectItem value="3">Within 3 km</SelectItem>

@@ -292,7 +292,7 @@ export default function App() {
                 setIsAddFormOpen(open);
               }}>
                 <SheetTrigger asChild>
-                  <Button size="sm" className="rounded-full gap-2">
+                  <Button size="sm" className="rounded-full gap-2 md:hidden">
                     <Plus className="w-4 h-4" />
                     <span className="hidden sm:inline">Add Place</span>
                   </Button>
@@ -436,6 +436,7 @@ export default function App() {
                 onClose={() => setSelectedFacility(null)} 
                 userLocation={userLocation}
                 user={user}
+                setAuthIsOpen={setIsAuthOpen}
               />
             </motion.div>
           )}
