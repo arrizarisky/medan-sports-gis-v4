@@ -282,7 +282,7 @@ export default function App() {
               </Button>
             )}
 
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <Sheet open={isAddFormOpen} onOpenChange={(open) => {
                 if (open && !user) {
                   setIsAuthOpen(true);
@@ -306,7 +306,7 @@ export default function App() {
                   </div>
                 </SheetContent>
               </Sheet>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>
