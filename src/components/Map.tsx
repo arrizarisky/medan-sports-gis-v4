@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { Facility } from "@/src/types";
 import { useEffect, useRef } from "react";
-import { Star, Navigation } from "lucide-react";
+import { Star, Navigation, Info} from "lucide-react";
 
 // @ts-ignore
 import pinBadminton from "../assets/icon/pin-badminton.png";
@@ -61,8 +61,19 @@ const getLeafletIcon = (type: string) => {
 interface MapProps {
   facilities: Facility[];
   userLocation: [number, number] | null;
-  onSelectFacility: (facility: Facility) => void;
+  onSelectFacility: (facility: Facility  | null, openDetail?: boolean) => void;
   selectedFacility: Facility | null;
+}
+
+function MapEvents({ onMapClick }: { onMapClick: () => void }) {
+  useMap().on("click", (e) => {
+    // Check if the click target is the map container itself (not a marker or other control)
+    // @ts-ignore
+    if (e.originalEvent.target.classList.contains("leaflet-container")) {
+      onMapClick();
+    }
+  });
+  return null;
 }
 
 function ChangeView({ center }: { center: [number, number] }) {
@@ -131,6 +142,8 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
+      <MapEvents onMapClick={() => onSelectFacility(null)} />
       
       {userLocation && (
         <Marker 
@@ -151,11 +164,11 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
           position={[facility.lat, facility.lng]}
           icon={getLeafletIcon(facility.type)}
           eventHandlers={{
-            click: () => onSelectFacility(facility),
+            click: () => onSelectFacility(facility, false),
           }}
         >
           <Popup>
-            <div className="w-48 p-0 overflow-hidden rounded-lg">
+            <div className="w-52 p-0 overflow-hidden rounded-lg">
               {facility.photos && facility.photos[0] && (
                 <img 
                   src={facility.photos[0]} 
@@ -165,22 +178,31 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
                 />
               )}
               <div className="p-2 pt-0">
-                <h3 className="font-bold text-sm leading-tight mb-1">{facility.name}</h3>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded capitalize">{facility.type}</span>
-                  <div className="flex items-center gap-0.5 text-yellow-500 text-[10px] font-bold">
-                    <Star className="w-3 h-3 fill-current" />
+                <h3 className="font-bold text-sm leading-tight mb-2">{facility.name}</h3>
+                
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button 
+                    onClick={() => onSelectFacility(facility, true)}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors group"
+                  >
+                    <Info className="w-4 h-4 text-primary group-hover:scale-110 transition-transform mb-1" />
+                    <span className="text-[10px] font-black text-primary uppercase">Details</span>
+                  </button>
+                  <button 
+                    onClick={() => onSelectFacility(facility, false)}
+                    className="flex flex-col items-center justify-center p-2 rounded-xl bg-blue-500/5 hover:bg-blue-500/10 transition-colors group"
+                  >
+                    <Navigation className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform mb-1" />
+                    <span className="text-[10px] font-black text-blue-500 uppercase">Route</span>
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold border-t border-slate-100 pt-2">
+                  <span className="capitalize">{facility.type}</span>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                     {facility.rating}
                   </div>
-                </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs font-bold text-primary">{facility.price}</span>
-                  {facility.distance !== undefined && (
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                      <Navigation className="w-2 h-2 fill-current" />
-                      {facility.distance.toFixed(1)} km
-                    </span>
-                  )}
                 </div>
               </div>
             </div>

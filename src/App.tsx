@@ -40,10 +40,20 @@ export default function App() {
   const [maxDistance, setMaxDistance] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  const handleSelectFacility = (facility: Facility | null, openDetail: boolean = true) => {
+    setSelectedFacility(facility);
+    if (facility && openDetail) {
+      setIsDetailOpen(true);
+    } else if (!facility) {
+      setIsDetailOpen(false);
+    }
+  };
 
   useEffect(() => {
     fetchFacilities();
@@ -370,7 +380,7 @@ export default function App() {
                     facility={facility} 
                     isSelected={selectedFacility?.id === facility.id}
                     onClick={() => {
-                      setSelectedFacility(facility);
+                      handleSelectFacility(facility);
                       if (window.innerWidth < 768) setViewMode("map");
                     }}
                   />
@@ -395,7 +405,8 @@ export default function App() {
             facilities={processedFacilities} 
             userLocation={userLocation} 
             selectedFacility={selectedFacility}
-            onSelectFacility={setSelectedFacility}
+            onSelectFacility={handleSelectFacility}
+            
           />
 
           {/* Floating Action Buttons (Map View) */}
@@ -423,7 +434,7 @@ export default function App() {
 
         {/* Detail Overlay */}
         <AnimatePresence>
-          {selectedFacility && (
+          {selectedFacility && isDetailOpen && (
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -433,7 +444,7 @@ export default function App() {
             >
               <FacilityDetail 
                 facility={selectedFacility} 
-                onClose={() => setSelectedFacility(null)} 
+                onClose={() => setIsDetailOpen(false)} 
                 userLocation={userLocation}
                 user={user}
                 setAuthIsOpen={setIsAuthOpen}
