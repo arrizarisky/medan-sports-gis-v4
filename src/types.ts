@@ -16,6 +16,7 @@ export interface Facility {
   contributor_name?: string;
   contributor_email?: string;
   opening_hours?: string;
+  kecamatans_id?: number;
 }
 
 export interface Comment {

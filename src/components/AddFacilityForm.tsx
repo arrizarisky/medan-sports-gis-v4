@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Facility } from "@/src/types";
 import { supabase } from "@/src/lib/supabase";
+import { findKecamatanFromCoordinates } from "@/src/lib/geoUtils";
 import { MapPin, Loader2, Image as ImageIcon, Search, Plus, Camera, Clock } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +34,7 @@ interface AddFacilityFormProps {
   onSuccess: (facility: Facility) => void;
   userLocation: [number, number] | null;
   user: any;
+  kecamatanList: { id: number; name: string }[];
 }
 
 const facilityOptions = ["Parking", "Toilet", "Shower", "Canteen", "Lighting", "AC", "Locker", "Cafe"];
@@ -71,7 +73,7 @@ function MapEvents({ setPosition }: { setPosition: (pos: [number, number]) => vo
   return null;
 }
 
-export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFacilityFormProps) {
+export default function AddFacilityForm({ onSuccess, userLocation, user, kecamatanList }: AddFacilityFormProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -87,7 +89,9 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
     photoUrls: [""] as string[],
     address: "",
     opening_hours: "",
+    kecamatans_id: undefined as number | undefined,
   });
+  const [detectedKecamatan, setDetectedKecamatan] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isPhotoSourceOpen, setIsPhotoSourceOpen] = useState(false);
@@ -186,7 +190,8 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
         user_id: user?.id,
         contributor_name: user?.user_metadata?.display_name || user?.user_metadata?.full_name || null,
         contributor_email: user?.email,
-        opening_hours: formData.opening_hours
+        opening_hours: formData.opening_hours,
+        kecamatans_id: formData.kecamatans_id
       };
 
       const { data, error } = await supabase
@@ -230,8 +235,32 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
     }));
   };
 
-  const setPosition = useCallback((pos: [number, number]) => {
+  const setPosition = useCallback(async (pos: [number, number]) => {
     setFormData(prev => ({ ...prev, lat: pos[0], lng: pos[1] }));
+    
+    // Auto-detect kecamatan from coordinates
+    const kecamatanName = await findKecamatanFromCoordinates(pos[0], pos[1]);
+    setDetectedKecamatan(kecamatanName);
+    
+    if (kecamatanName) {
+      // Map kecamatan name to ID (normalize name matching)
+      const normalizedKecamatan = kecamatanName.replace(/\s+/g, '').toLowerCase();
+      const kecamatan = kecamatanList.find(k => {
+        const normalizedDbName = k.name.replace(/\s+/g, '').toLowerCase();
+        return normalizedDbName.includes(normalizedKecamatan) || normalizedKecamatan.includes(normalizedDbName);
+      });
+      
+      if (kecamatan) {
+        setFormData(prev => ({ ...prev, kecamatans_id: kecamatan.id }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, kecamatans_id: undefined }));
+    }
+  }, [kecamatanList]);
+
+  // Initial kecamatan detection
+  useEffect(() => {
+    setPosition([formData.lat, formData.lng]);
   }, []);
 
   return (
@@ -539,6 +568,11 @@ export default function AddFacilityForm({ onSuccess, userLocation, user }: AddFa
               Reset to My GPS
             </Button>
           </div>
+          {detectedKecamatan && (
+            <div className="text-[10px] text-primary font-medium mt-1">
+              Detected Kecamatan: {detectedKecamatan}
+            </div>
+          )}
         </div>
 
         <Button type="submit" className="w-full h-12 text-lg" disabled={loading}>

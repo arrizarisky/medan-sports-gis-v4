@@ -11,6 +11,9 @@ interface FilterBarProps {
   onPriceChange: (price: string) => void;
   maxDistance: string;
   onDistanceChange: (distance: string) => void;
+  selectedKecamatan: string;
+  onKecamatanChange: (kecamatan: string) => void;
+  kecamatanList: { id: number; name: string }[];
 }
 
 const sportTypes: { value: SportType; label: string; icon: any }[] = [
@@ -29,7 +32,10 @@ export default function FilterBar({
   maxPrice,
   onPriceChange,
   maxDistance,
-  onDistanceChange
+  onDistanceChange,
+  selectedKecamatan,
+  onKecamatanChange,
+  kecamatanList
 }: FilterBarProps) {
   return (
     <div className="space-y-6">
@@ -84,6 +90,20 @@ export default function FilterBar({
               <SelectItem value="3">Within 3 km</SelectItem>
               <SelectItem value="5">Within 5 km</SelectItem>
               <SelectItem value="10">Within 10 km</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedKecamatan} onValueChange={onKecamatanChange}>
+            <SelectTrigger className="h-15 text-xs rounded-2xl bg-white border-slate-100 soft-shadow font-bold text-slate-600 w-[140px]">
+              <SelectValue placeholder="Kecamatan" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border-none soft-shadow-lg max-h-[300px]">
+              <SelectItem value="all">All Kecamatan</SelectItem>
+              {kecamatanList.map((kec) => (
+                <SelectItem key={kec.id} value={kec.id.toString()}>
+                  {kec.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

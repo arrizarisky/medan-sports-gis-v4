@@ -8,9 +8,10 @@ interface FacilityCardProps {
   facility: Facility;
   onClick: () => void;
   isSelected?: boolean;
+  kecamatanName?: string;
 }
 
-export default function FacilityCard({ facility, onClick, isSelected }: FacilityCardProps) {
+export default function FacilityCard({ facility, onClick, isSelected, kecamatanName }: FacilityCardProps) {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -60,7 +61,7 @@ export default function FacilityCard({ facility, onClick, isSelected }: Facility
           
           <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-4">
             <MapPin className="w-3.5 h-3.5" />
-            <span className="line-clamp-1">Medan, Indonesia</span>
+            <span className="line-clamp-1">{kecamatanName || 'Medan, Indonesia'}</span>
           </div>
 
           <div className="flex justify-between items-center pt-2 border-t border-slate-50">

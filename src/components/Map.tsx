@@ -1,10 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { Facility } from "@/src/types";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Star, Navigation, Info} from "lucide-react";
+import proj4 from "proj4";
 
 // @ts-ignore
 import pinBadminton from "../assets/icon/pin-badminton.png";
@@ -16,6 +17,37 @@ import pinRunning from "../assets/icon/pin-running.png";
 import pinGym from "../assets/icon/pin-gym.png";
 // @ts-ignore
 import pinDefault from "../assets/icon/pin-default.png";
+
+// Define coordinate systems for proj4
+const utm48s = '+proj=utm +zone=48 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+const wgs84 = '+proj=longlat +datum=WGS84 +no_defs';
+
+// Function to convert UTM coordinates to WGS84
+function convertCoordinates(coords: any[]): any[] {
+  if (!coords || coords.length === 0) return coords;
+  
+  // Check if this is a coordinate pair [x, y] or [x, y, z]
+  if (typeof coords[0] === 'number') {
+    const [x, y, z] = coords;
+    const [lon, lat] = proj4(utm48s, wgs84, [x, y]);
+    return z !== undefined ? [lon, lat, z] : [lon, lat];
+  }
+  
+  // Recursively convert nested arrays
+  return coords.map((coord: any) => convertCoordinates(coord));
+}
+
+// Function to convert entire GeoJSON feature
+function convertFeature(feature: any): any {
+  const converted = { ...feature };
+  if (converted.geometry && converted.geometry.coordinates) {
+    converted.geometry = {
+      ...converted.geometry,
+      coordinates: convertCoordinates(converted.geometry.coordinates)
+    };
+  }
+  return converted;
+}
 
 // 1. Definisikan mapping path gambarnya saja
 const categoryIcons: Record<string, string> = {
@@ -130,6 +162,72 @@ function RoutingControl({ userLocation, destination }: {
 export default function Map({ facilities, userLocation, onSelectFacility, selectedFacility }: MapProps) {
   const defaultCenter: [number, number] = [3.5952, 98.6722]; // Medan Center
   const center = userLocation || defaultCenter;
+  const [boundaryData, setBoundaryData] = useState<any>(null);
+
+  // Load and convert GeoJSON boundary
+  useEffect(() => {
+    console.log("Loading GeoJSON...");
+    fetch("/BATAS%20MEDAN.geojson")
+      .then((res) => {
+        console.log("Response status:", res.status);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("GeoJSON loaded, features:", data.features?.length);
+        const converted = {
+          ...data,
+          features: data.features.map(convertFeature)
+        };
+        console.log("Converted first feature coords:", converted.features[0]?.geometry?.coordinates?.[0]?.[0]?.[0]);
+        setBoundaryData(converted);
+      })
+      .catch((err) => console.error("Error loading boundary:", err));
+  }, []);
+
+  // Color palette for kecamatan
+  const kecamatanColors = [
+    "#ef4444", // red
+    "#f97316", // orange
+    "#eab308", // yellow
+    "#22c55e", // green
+    "#06b6d4", // cyan
+    "#3b82f6", // blue
+    "#8b5cf6", // violet
+    "#ec4899", // pink
+    "#f43f5e", // rose
+    "#84cc16", // lime
+    "#14b8a6", // teal
+    "#6366f1", // indigo
+    "#a855f7", // purple
+    "#d946ef", // fuchsia
+    "#f59e0b", // amber
+    "#10b981", // emerald
+    "#0ea5e9", // sky
+    "#64748b", // slate
+    "#78716c", // stone
+    "#71717a", // zinc
+  ];
+
+  // Function to get color based on kecamatan name
+  const getKecamatanColor = (feature: any) => {
+    const kecamatanName = feature.properties?.NAMOBJ || "Unknown";
+    // Use a simple hash to consistently assign colors
+    let hash = 0;
+    for (let i = 0; i < kecamatanName.length; i++) {
+      hash = kecamatanName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colorIndex = Math.abs(hash) % kecamatanColors.length;
+    return kecamatanColors[colorIndex];
+  };
+
+  // Style function for the boundary
+  const boundaryStyle = (feature: any) => ({
+    color: "#64748b",
+    weight: 2,
+    opacity: 0.8,
+    fillOpacity: 0.3,
+    fillColor: getKecamatanColor(feature)
+  });
 
   return (
     <MapContainer
@@ -142,6 +240,8 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
+      {boundaryData && <GeoJSON data={boundaryData} style={boundaryStyle} />}
 
       <MapEvents onMapClick={() => onSelectFacility(null)} />
       

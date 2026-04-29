@@ -38,6 +38,7 @@ export default function App() {
   const [selectedType, setSelectedType] = useState<SportType>("all");
   const [maxPrice, setMaxPrice] = useState("all");
   const [maxDistance, setMaxDistance] = useState("all");
+  const [selectedKecamatan, setSelectedKecamatan] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function App() {
   const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [kecamatanList, setKecamatanList] = useState<{ id: number; name: string }[]>([]);
 
   const handleSelectFacility = (facility: Facility | null, openDetail: boolean = true) => {
     setSelectedFacility(facility);
@@ -57,6 +59,7 @@ export default function App() {
 
   useEffect(() => {
     fetchFacilities();
+    fetchKecamatans();
     detectLocation();
 
     // Check current session
@@ -131,6 +134,26 @@ export default function App() {
     }
   };
 
+  const fetchKecamatans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('kecamatans')
+        .select('id, name')
+        .order('name');
+      
+      if (error) throw error;
+      
+      if (Array.isArray(data)) {
+        setKecamatanList(data as { id: number; name: string }[]);
+      } else {
+        setKecamatanList([]);
+      }
+    } catch (error) {
+      console.error("Error fetching kecamatans:", error);
+      setKecamatanList([]);
+    }
+  };
+
   const detectLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -178,6 +201,11 @@ export default function App() {
       });
     }
 
+    // Filter by kecamatan
+    if (selectedKecamatan !== "all") {
+      filtered = filtered.filter(f => f.kecamatans_id === parseInt(selectedKecamatan));
+    }
+
     // Calculate distances
     const withDistance: Facility[] = filtered.map(f => ({
       ...f,
@@ -198,7 +226,7 @@ export default function App() {
     }
 
     return finalFiltered;
-  }, [facilities, selectedType, searchQuery, userLocation, maxPrice, maxDistance]);
+  }, [facilities, selectedType, searchQuery, userLocation, maxPrice, maxDistance, selectedKecamatan]);
 
   const handleAddSuccess = (newFacility: Facility) => {
     console.log("New facility added:", newFacility);
@@ -212,6 +240,7 @@ export default function App() {
     setSearchQuery("");
     setMaxPrice("all");
     setMaxDistance("all");
+    setSelectedKecamatan("all");
     setIsAddFormOpen(false);
     setSelectedFacility(newFacility);
     // On mobile, switch to list view to show the new item
@@ -312,7 +341,7 @@ export default function App() {
                     <SheetTitle>Submit New Facility</SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 overflow-hidden">
-                    <AddFacilityForm onSuccess={handleAddSuccess} userLocation={userLocation} user={user} />
+                    <AddFacilityForm onSuccess={handleAddSuccess} userLocation={userLocation} user={user} kecamatanList={kecamatanList} />
                   </div>
                 </SheetContent>
               </Sheet>
@@ -341,6 +370,9 @@ export default function App() {
             onPriceChange={setMaxPrice}
             maxDistance={maxDistance}
             onDistanceChange={setMaxDistance}
+            selectedKecamatan={selectedKecamatan}
+            onKecamatanChange={setSelectedKecamatan}
+            kecamatanList={kecamatanList}
           />
         </div>
 
@@ -357,6 +389,9 @@ export default function App() {
               onPriceChange={setMaxPrice}
               maxDistance={maxDistance}
               onDistanceChange={setMaxDistance}
+              selectedKecamatan={selectedKecamatan}
+              onKecamatanChange={setSelectedKecamatan}
+              kecamatanList={kecamatanList}
             />
           </div>
           
@@ -374,18 +409,24 @@ export default function App() {
 
           <ScrollArea className="flex-1 p-4 min-h-0">
             <div className="grid grid-cols-1 gap-4 pb-20 md:pb-4">
-              {processedFacilities.map(facility => (
-                <div key={facility.id}>
-                  <FacilityCard 
-                    facility={facility} 
-                    isSelected={selectedFacility?.id === facility.id}
-                    onClick={() => {
-                      handleSelectFacility(facility);
-                      if (window.innerWidth < 768) setViewMode("map");
-                    }}
-                  />
-                </div>
-              ))}
+              {processedFacilities.map(facility => {
+                const kecamatanName = facility.kecamatans_id 
+                  ? kecamatanList.find(k => k.id === facility.kecamatans_id)?.name 
+                  : undefined;
+                return (
+                  <div key={facility.id}>
+                    <FacilityCard 
+                      facility={facility} 
+                      isSelected={selectedFacility?.id === facility.id}
+                      kecamatanName={kecamatanName}
+                      onClick={() => {
+                        handleSelectFacility(facility);
+                        if (window.innerWidth < 768) setViewMode("map");
+                      }}
+                    />
+                  </div>
+                );
+              })}
               {processedFacilities.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
