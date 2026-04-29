@@ -89,7 +89,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
     photoUrls: [""] as string[],
     address: "",
     opening_hours: "",
-    kecamatans_id: undefined as number | undefined,
+    kecamatan_id: undefined as number | undefined,
   });
   const [detectedKecamatan, setDetectedKecamatan] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -191,7 +191,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
         contributor_name: user?.user_metadata?.display_name || user?.user_metadata?.full_name || null,
         contributor_email: user?.email,
         opening_hours: formData.opening_hours,
-        kecamatans_id: formData.kecamatans_id
+        kecamatan_id: formData.kecamatan_id
       };
 
       const { data, error } = await supabase
@@ -251,10 +251,10 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
       });
       
       if (kecamatan) {
-        setFormData(prev => ({ ...prev, kecamatans_id: kecamatan.id }));
+        setFormData(prev => ({ ...prev, kecamatan_id: kecamatan.id }));
       }
     } else {
-      setFormData(prev => ({ ...prev, kecamatans_id: undefined }));
+      setFormData(prev => ({ ...prev, kecamatan_id: undefined }));
     }
   }, [kecamatanList]);
 

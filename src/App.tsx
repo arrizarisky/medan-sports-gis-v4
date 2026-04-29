@@ -203,7 +203,7 @@ export default function App() {
 
     // Filter by kecamatan
     if (selectedKecamatan !== "all") {
-      filtered = filtered.filter(f => f.kecamatans_id === parseInt(selectedKecamatan));
+      filtered = filtered.filter(f => f.kecamatan_id === parseInt(selectedKecamatan));
     }
 
     // Calculate distances
@@ -410,8 +410,8 @@ export default function App() {
           <ScrollArea className="flex-1 p-4 min-h-0">
             <div className="grid grid-cols-1 gap-4 pb-20 md:pb-4">
               {processedFacilities.map(facility => {
-                const kecamatanName = facility.kecamatans_id 
-                  ? kecamatanList.find(k => k.id === facility.kecamatans_id)?.name 
+                const kecamatanName = facility.kecamatan_id 
+                  ? kecamatanList.find(k => k.id === facility.kecamatan_id)?.name 
                   : undefined;
                 return (
                   <div key={facility.id}>
