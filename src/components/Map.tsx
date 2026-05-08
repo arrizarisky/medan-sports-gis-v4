@@ -4,8 +4,10 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { Facility } from "@/src/types";
 import { useEffect, useRef, useState } from "react";
-import { Star, Navigation, Info} from "lucide-react";
+import { Star, Navigation, Info, Layers, X } from "lucide-react";
 import proj4 from "proj4";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // @ts-ignore
 import pinBadminton from "../assets/icon/pin-badminton.png";
@@ -163,6 +165,7 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
   const defaultCenter: [number, number] = [3.5952, 98.6722]; // Medan Center
   const center = userLocation || defaultCenter;
   const [boundaryData, setBoundaryData] = useState<any>(null);
+  const [showLegend, setShowLegend] = useState(true);
 
   // Load and convert GeoJSON boundary
   useEffect(() => {
@@ -230,6 +233,7 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
   });
 
   return (
+    <>
     <MapContainer
       center={center}
       zoom={13}
@@ -321,5 +325,73 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         <ChangeView center={[selectedFacility.lat, selectedFacility.lng]} />
       )}
     </MapContainer>
+
+      {/* Legend Toggle Button */}
+      <Button
+        variant="default"
+        size="icon"
+        className="absolute top-4 right-4 z-[1000] rounded-full shadow-lg bg-white text-slate-700 hover:bg-slate-50 w-9 h-9 md:w-10 md:h-10"
+        onClick={() => setShowLegend(!showLegend)}
+        title="Toggle Legend"
+      >
+        {showLegend ? <X className="w-4 h-4 md:w-5 md:h-5" /> : <Layers className="w-4 h-4 md:w-5 md:h-5" />}
+      </Button>
+
+      {/* Legend Card */}
+      {showLegend && (
+        <Card className="absolute top-14 right-4 left-4 md:left-auto md:top-16 md:right-4 md:w-64 z-[999] p-3 md:p-4 bg-white/95 backdrop-blur-sm shadow-xl max-h-[70vh] overflow-y-auto">
+          <div className="flex items-center gap-2 mb-2 md:mb-3">
+            <Layers className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+            <h3 className="font-bold text-xs md:text-sm">Legend</h3>
+          </div>
+
+          {/* Icon Pins Section */}
+          <div className="mb-3 md:mb-4">
+            <h4 className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 md:mb-2">Facility Types</h4>
+            <div className="space-y-1 md:space-y-2">
+              <div className="flex items-center gap-1 md:gap-2">
+                <img src={pinFutsal} alt="Futsal" className="w-4 h-6 md:w-6 md:h-9 object-contain" />
+                <span className="text-[10px] md:text-xs font-medium">Futsal</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <img src={pinBadminton} alt="Badminton" className="w-4 h-6 md:w-6 md:h-9 object-contain" />
+                <span className="text-[10px] md:text-xs font-medium">Badminton</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <img src={pinGym} alt="Gym" className="w-4 h-6 md:w-6 md:h-9 object-contain" />
+                <span className="text-[10px] md:text-xs font-medium">Gym</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <img src={pinRunning} alt="Running" className="w-4 h-6 md:w-6 md:h-9 object-contain" />
+                <span className="text-[10px] md:text-xs font-medium">Running</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2">
+                <img src={pinDefault} alt="Other" className="w-4 h-6 md:w-6 md:h-9 object-contain" />
+                <span className="text-[10px] md:text-xs font-medium">Other</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Kecamatan Colors Section */}
+          <div>
+            <h4 className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 md:mb-2">Kecamatan Areas</h4>
+            <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
+              Each kecamatan has a unique color to distinguish boundaries.
+            </p>
+            <div className="flex flex-wrap gap-0.5 md:gap-1 mt-1 md:mt-2">
+              {kecamatanColors.slice(0, 10).map((color, index) => (
+                <div
+                  key={index}
+                  className="w-3 h-3 md:w-4 md:h-4 rounded-sm border border-slate-200"
+                  style={{ backgroundColor: color }}
+                  title={`Color ${index + 1}`}
+                />
+              ))}
+              <div className="text-[10px] md:text-xs text-muted-foreground ml-1 self-center">+10</div>
+            </div>
+          </div>
+        </Card>
+      )}
+    </>
   );
 }

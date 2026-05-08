@@ -18,7 +18,9 @@ import {
   Loader2,
   Info,
   User,
-  LogOut
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +49,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [kecamatanList, setKecamatanList] = useState<{ id: number; name: string }[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const handleSelectFacility = (facility: Facility | null, openDetail: boolean = true) => {
     setSelectedFacility(facility);
@@ -379,8 +382,20 @@ export default function App() {
         {/* Sidebar (Desktop) / List View (Mobile) */}
         <aside className={`
           ${viewMode === 'list' ? 'flex' : 'hidden'} 
-          md:flex flex-col w-full md:w-96 border-r bg-secondary/20 shrink-0 overflow-hidden flex-1 md:flex-none min-h-0
+          ${isSidebarOpen ? 'md:flex' : 'md:hidden'} flex-col w-full md:w-96 border-r bg-secondary/20 shrink-0 overflow-hidden flex-1 md:flex-none min-h-0 transition-all duration-300
         `}>
+          <div className="p-3 border-b bg-white hidden md:flex items-center justify-between">
+            <h2 className="font-bold text-sm text-muted-foreground uppercase tracking-wider">Filters</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-slate-100 transition-colors"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title="Close sidebar"
+            >
+              <PanelLeftClose className="w-5 h-5" />
+            </Button>
+          </div>
           <div className="p-4 border-b bg-white hidden md:block">
             <FilterBar 
               selectedType={selectedType} 
@@ -442,6 +457,18 @@ export default function App() {
 
         {/* Map View */}
         <div className={`flex-1 relative ${viewMode === 'map' ? 'block' : 'hidden'} md:block`}>
+          {/* Sidebar Toggle Button (when sidebar is closed) */}
+          {!isSidebarOpen && (
+            <Button
+              variant="default"
+              size="icon"
+              className="absolute top-4 left-4 z-[1000] rounded-full shadow-lg"
+              onClick={() => setIsSidebarOpen(true)}
+              title="Open sidebar"
+            >
+              <PanelLeftOpen className="w-5 h-5" />
+            </Button>
+          )}
           <Map 
             facilities={processedFacilities} 
             userLocation={userLocation} 
