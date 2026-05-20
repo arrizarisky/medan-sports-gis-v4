@@ -23,7 +23,7 @@ export default function FacilityCard({ facility, onClick, isSelected, kecamatanN
         <div className="relative h-45 w-full">
           {Array.isArray(facility.photos) && facility.photos.length > 0 ? (
             <img
-              src={facility.photos[0]}
+              src={facility.photos.find(p => p.is_primary)?.url || facility.photos[0]?.url}
               alt={facility.name}
               className="h-full w-full p-3 object-cover rounded-t-2xl transition-transform duration-700"
               referrerPolicy="no-referrer"
@@ -34,7 +34,7 @@ export default function FacilityCard({ facility, onClick, isSelected, kecamatanN
             </div>
           )}
           <Badge className="absolute top-3 right-3 bg-white/95 text-primary hover:bg-white capitalize rounded-full px-3 py-1 text-[10px] font-bold soft-shadow border-none">
-            {facility.type}
+            {facility.type?.name || 'Unknown'}
           </Badge>
           {Array.isArray(facility.photos) && facility.photos.length > 1 && (
             <div className="absolute bottom-3 right-3 bg-black/40 text-white text-[10px] px-2.5 py-1 rounded-full backdrop-blur-md flex items-center gap-1.5 font-medium">

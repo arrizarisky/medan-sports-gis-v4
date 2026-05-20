@@ -119,7 +119,14 @@ export default function App() {
     try {
       const { data, error } = await supabase
         .from('facilities')
-        .select('*');
+        .select(`
+          *,
+          type:facility_types(*),
+          photos:facility_photos(*),
+          facilities:facility_facilities(*),
+          opening_hours:facility_operating_hours(*)
+        `)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
@@ -174,9 +181,12 @@ export default function App() {
     if (!Array.isArray(facilities)) return [];
     let filtered = [...facilities];
 
-    // Filter by type
+    // Filter by type (using normalized structure)
     if (selectedType !== "all") {
-      filtered = filtered.filter(f => f.type === selectedType);
+      filtered = filtered.filter(f => 
+        f.type?.name === selectedType || 
+        (typeof f.type === 'object' && f.type?.name === selectedType)
+      );
     }
 
     // Filter by search query

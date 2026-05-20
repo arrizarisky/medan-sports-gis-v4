@@ -1,8 +1,10 @@
-import { SportType } from "@/src/types";
+import { useState, useEffect } from "react";
+import { SportType, FacilityType } from "@/src/types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Dumbbell, Trophy, Footprints, Flame, Target, Users, Filter, ArrowUpDown } from "lucide-react";
+import { Trophy, Dumbbell, Users, Target, Footprints, Flame, Filter, ArrowUpDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/src/lib/supabase";
 
 interface FilterBarProps {
   selectedType: SportType;
@@ -16,15 +18,15 @@ interface FilterBarProps {
   kecamatanList: { id: number; name: string }[];
 }
 
-const sportTypes: { value: SportType; label: string; icon: any }[] = [
-  { value: "all", label: "All Sports", icon: Trophy },
-  { value: "gym", label: "Gym", icon: Dumbbell },
-  { value: "badminton", label: "Badminton", icon: Trophy },
-  { value: "futsal", label: "Futsal", icon: Users },
-  { value: "padel", label: "Padel", icon: Target },
-  { value: "jogging", label: "Jogging", icon: Footprints },
-  { value: "mini soccer", label: "Mini Soccer", icon: Flame },
-];
+// Default icons for common sport types
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  gym: Dumbbell,
+  badminton: Trophy,
+  futsal: Users,
+  padel: Target,
+  jogging: Footprints,
+  "mini soccer": Flame,
+};
 
 export default function FilterBar({ 
   selectedType, 
@@ -37,6 +39,32 @@ export default function FilterBar({
   onKecamatanChange,
   kecamatanList
 }: FilterBarProps) {
+  const [facilityTypes, setFacilityTypes] = useState<FacilityType[]>([]);
+
+  useEffect(() => {
+    const fetchFacilityTypes = async () => {
+      const { data, error } = await supabase
+        .from('facility_types')
+        .select('*')
+        .order('name');
+      
+      if (!error && data) {
+        setFacilityTypes(data);
+      }
+    };
+    fetchFacilityTypes();
+  }, []);
+
+  // Build sport types from database
+  const sportTypes = [
+    { value: "all" as SportType, label: "All Sports", icon: Trophy },
+    ...facilityTypes.map(type => ({
+      value: type.name as SportType,
+      label: type.name.charAt(0).toUpperCase() + type.name.slice(1),
+      icon: iconMap[type.name] || Trophy
+    }))
+  ];
+
   return (
     <div className="space-y-6">
       <ScrollArea className="w-full whitespace-nowrap">

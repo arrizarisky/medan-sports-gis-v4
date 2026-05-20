@@ -266,16 +266,16 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         <Marker
           key={facility.id}
           position={[facility.lat, facility.lng]}
-          icon={getLeafletIcon(facility.type)}
+          icon={getLeafletIcon(facility.type?.name || '')}
           eventHandlers={{
             click: () => onSelectFacility(facility, false),
           }}
         >
           <Popup>
             <div className="w-52 p-0 overflow-hidden rounded-lg">
-              {facility.photos && facility.photos[0] && (
+              {facility.photos && facility.photos.length > 0 && (
                 <img 
-                  src={facility.photos[0]} 
+                  src={facility.photos.find(p => p.is_primary)?.url || facility.photos[0]?.url} 
                   alt={facility.name} 
                   className="w-full h-24 object-cover rounded-t-lg mb-2"
                   referrerPolicy="no-referrer"
@@ -302,7 +302,7 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
                 </div>
 
                 <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold border-t border-slate-100 pt-2">
-                  <span className="capitalize">{facility.type}</span>
+                  <span className="capitalize">{facility.type?.name || 'Unknown'}</span>
                   <div className="flex items-center gap-1">
                     <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                     {facility.rating}

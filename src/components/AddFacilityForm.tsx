@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Facility } from "@/src/types";
+import { Facility, FacilityType } from "@/src/types";
 import { supabase } from "@/src/lib/supabase";
 import { findKecamatanFromCoordinates } from "@/src/lib/geoUtils";
 import { MapPin, Loader2, Image as ImageIcon, Search, Plus, Camera, Clock } from "lucide-react";
@@ -14,7 +14,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import L from "leaflet";
 
-// Fix for default marker icons in Leaflet
 // @ts-ignore
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 // @ts-ignore
@@ -77,7 +76,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    type: "gym" as Facility["type"],
+    type_id: 1,
     price: "",
     priceValue: "",
     rating: "4.5",
@@ -91,6 +90,7 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
     opening_hours: "",
     kecamatan_id: undefined as number | undefined,
   });
+  const [facilityTypes, setFacilityTypes] = useState<FacilityType[]>([]);
   const [detectedKecamatan, setDetectedKecamatan] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -175,18 +175,17 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
       const validUrls = formData.photoUrls.filter(url => url.trim() !== "");
       const allPhotos = [...storageUrls, ...validUrls];
       
-      const payload = {
+      // 1. Insert main facility record
+      const facilityPayload = {
         name: formData.name,
-        type: formData.type,
+        type_id: formData.type_id,
         price: formData.price,
         priceValue: parseInt(formData.priceValue) || 0,
         rating: parseFloat(formData.rating) || 0,
         ratingSource: formData.ratingSource || "",
         description: formData.description,
-        facilities: formData.facilities,
         lat: formData.lat,
         lng: formData.lng,
-        photos: allPhotos.length > 0 ? allPhotos : ["https://picsum.photos/seed/new/800/600"],
         user_id: user?.id,
         contributor_name: user?.user_metadata?.display_name || user?.user_metadata?.full_name || null,
         contributor_email: user?.email,
@@ -194,16 +193,53 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
         kecamatan_id: formData.kecamatan_id
       };
 
-      const { data, error } = await supabase
+      const { data: facilityData, error: facilityError } = await supabase
         .from('facilities')
-        .insert([payload])
+        .insert([facilityPayload])
         .select()
         .single();
       
-      if (error) throw error;
+      if (facilityError) throw facilityError;
       
-      if (data) {
-        onSuccess(data as Facility);
+      if (facilityData) {
+        const facilityId = facilityData.id;
+        
+        // 2. Insert amenities to facility_facilities
+        if (formData.facilities.length > 0) {
+          const amenitiesData = formData.facilities.map(amenity => ({
+            facility_id: facilityId,
+            amenity: amenity
+          }));
+          await supabase.from('facility_facilities').insert(amenitiesData);
+        }
+        
+        // 3. Insert photos to facility_photos
+        const photosToInsert = allPhotos.length > 0 
+          ? allPhotos 
+          : ["https://picsum.photos/seed/new/800/600"];
+        
+        const photosData = photosToInsert.map((url, idx) => ({
+          facility_id: facilityId,
+          url: url,
+          is_primary: idx === 0,
+          sort_order: idx
+        }));
+        await supabase.from('facility_photos').insert(photosData);
+        
+        // 4. Fetch complete facility data with joins
+        const { data: completeData } = await supabase
+          .from('facilities')
+          .select(`
+            *,
+            type:facility_types(*),
+            photos:facility_photos(*),
+            facilities:facility_facilities(*),
+            opening_hours:facility_operating_hours(*)
+          `)
+          .eq('id', facilityId)
+          .single();
+        
+        onSuccess(completeData as Facility);
       }
     } catch (error: any) {
       console.error("Error adding facility:", error);
@@ -263,6 +299,21 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
     setPosition([formData.lat, formData.lng]);
   }, []);
 
+  // Fetch facility types
+  useEffect(() => {
+    const fetchFacilityTypes = async () => {
+      const { data, error } = await supabase
+        .from('facility_types')
+        .select('*')
+        .order('name');
+      
+      if (!error && data) {
+        setFacilityTypes(data);
+      }
+    };
+    fetchFacilityTypes();
+  }, []);
+
   return (
     <ScrollArea className="h-full">
       <form onSubmit={handleSubmit} className="space-y-6 p-6">
@@ -297,19 +348,18 @@ export default function AddFacilityForm({ onSuccess, userLocation, user, kecamat
           <div className="space-y-2">
             <Label htmlFor="type">Sport Type</Label>
             <Select 
-              value={formData.type} 
-              onValueChange={val => setFormData(prev => ({ ...prev, type: val as any }))}
+              value={formData.type_id.toString()} 
+              onValueChange={val => setFormData(prev => ({ ...prev, type_id: parseInt(val) }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gym">Gym</SelectItem>
-                <SelectItem value="badminton">Badminton</SelectItem>
-                <SelectItem value="futsal">Futsal</SelectItem>
-                <SelectItem value="padel">Padel</SelectItem>
-                <SelectItem value="jogging">Jogging</SelectItem>
-                <SelectItem value="mini soccer">Mini Soccer</SelectItem>
+                {facilityTypes.map(type => (
+                  <SelectItem key={type.id} value={type.id.toString()}>
+                    {type.name.charAt(0).toUpperCase() + type.name.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

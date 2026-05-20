@@ -23,20 +23,23 @@ export default function FacilityDetail({ facility, onClose, userLocation, user, 
       <div className="relative shrink-0 p-6 pb-0">
         <ScrollArea className="w-full whitespace-nowrap rounded-[2.5rem] overflow-hidden soft-shadow-lg">
           <div className="flex w-max">
-            {Array.isArray(facility.photos) && facility.photos.map((photo, idx) => (
-              <div key={idx} className="relative h-72 w-[85vw] md:w-[450px]">
-                <img
-                  src={photo}
-                  alt={`${facility.name} ${idx + 1}`}
-                  className="h-full w-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute bottom-4 right-4 bg-black/30 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md font-bold">
-                  {idx + 1} / {facility.photos.length}
-                </div>
-              </div>
-            ))}
-            {(!Array.isArray(facility.photos) || facility.photos.length === 0) && (
+            {Array.isArray(facility.photos) && facility.photos.length > 0 ? (
+              facility.photos
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((photo, idx) => (
+                  <div key={photo.id} className="relative h-72 w-[85vw] md:w-[450px]">
+                    <img
+                      src={photo.url}
+                      alt={`${facility.name} ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute bottom-4 right-4 bg-black/30 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md font-bold">
+                      {idx + 1} / {facility.photos.length}
+                    </div>
+                  </div>
+                ))
+            ) : (
               <div className="relative h-72 w-[85vw] md:w-[450px] bg-slate-100 flex items-center justify-center">
                 <span className="text-slate-400 font-medium">No photos available</span>
               </div>
@@ -86,17 +89,19 @@ export default function FacilityDetail({ facility, onClose, userLocation, user, 
                 <MapPin className="w-4 h-4 text-slate-400" />
                 <span>Medan City, North Sumatra</span>
               </div>
-              {facility.opening_hours && (
+              {facility.opening_hours_text && (
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 w-fit px-3 py-1 rounded-full text-sm font-bold">
                   <Clock className="w-4 h-4" />
-                  <span>{facility.opening_hours}</span>
+                  <span>{facility.opening_hours_text}</span>
                 </div>
               )}
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Badge variant="secondary" className="capitalize px-4 py-1.5  rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 border-none font-bold text-xs">{facility.type}</Badge>
+            <Badge variant="secondary" className="capitalize px-4 py-1.5  rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 border-none font-bold text-xs">
+              {facility.type?.name || 'Unknown'}
+            </Badge>
             <Badge variant="outline" className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/10 border-none font-black text-xs">{facility.price}</Badge>
             {typeof facility.distance === 'number' && (
               <Badge variant="secondary" className="px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-100 border-none font-bold text-xs flex gap-2 items-center">
@@ -122,14 +127,16 @@ export default function FacilityDetail({ facility, onClose, userLocation, user, 
           <div className="space-y-3">
             <h3 className="font-black text-xl tracking-tight text-slate-900">Facilities</h3>
             <div className="grid grid-cols-2 gap-3">
-              {Array.isArray(facility.facilities) ? facility.facilities.map((f) => (
-                <div key={f} className="flex items-center gap-3 text-sm font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              {Array.isArray(facility.facilities) && facility.facilities.length > 0 ? (
+                facility.facilities.map((f) => (
+                  <div key={f.id} className="flex items-center gap-3 text-sm font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    </div>
+                    <span className="capitalize">{f.amenity}</span>
                   </div>
-                  <span className="capitalize">{f}</span>
-                </div>
-              )) : (
+                ))
+              ) : (
                 <p className="text-sm text-slate-400">No facility information available</p>
               )}
             </div>
