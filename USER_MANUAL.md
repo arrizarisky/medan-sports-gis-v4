@@ -1,4 +1,4 @@
-# 📖 Manual Pengguna - Medan Sport Area
+#  Manual Pengguna - Medan Sport Area
 
 ## Pendahuluan
 
