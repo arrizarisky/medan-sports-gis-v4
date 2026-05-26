@@ -8,6 +8,7 @@ import { Star, Navigation, Info, Layers, X } from "lucide-react";
 import proj4 from "proj4";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { findKecamatanInFeatures } from "@/src/lib/geoUtils";
 
 // @ts-ignore
 import pinBadminton from "../assets/icon/pin-badminton.png";
@@ -97,16 +98,38 @@ interface MapProps {
   userLocation: [number, number] | null;
   onSelectFacility: (facility: Facility  | null, openDetail?: boolean) => void;
   selectedFacility: Facility | null;
+  selectedKecamatanName?: string | null;
+  onSelectKecamatan?: (name: string | null) => void;
 }
 
-function MapEvents({ onMapClick }: { onMapClick: () => void }) {
-  useMap().on("click", (e) => {
-    // Check if the click target is the map container itself (not a marker or other control)
-    // @ts-ignore
-    if (e.originalEvent.target.classList.contains("leaflet-container")) {
+function MapEvents({ onMapClick, boundaryData, onKecamatanSelect, selectedKecamatan }: { 
+  onMapClick: () => void; 
+  boundaryData: any;
+  onKecamatanSelect: (kecamatan: string | null) => void;
+  selectedKecamatan: string | null;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    const handleClick = (e: any) => {
       onMapClick();
-    }
-  });
+      
+      if (boundaryData && boundaryData.features) {
+        const clickedKecamatan = findKecamatanInFeatures(e.latlng.lat, e.latlng.lng, boundaryData.features);
+        if (clickedKecamatan) {
+          onKecamatanSelect(clickedKecamatan);
+        } else {
+          onKecamatanSelect(null);
+        }
+      } else {
+        onKecamatanSelect(null);
+      }
+    };
+
+    map.on("click", handleClick);
+    return () => {
+      map.off("click", handleClick);
+    };
+  }, [map, onMapClick, boundaryData, onKecamatanSelect]);
   return null;
 }
 
@@ -145,6 +168,36 @@ function RoutingControl({ userLocation, destination }: {
       createMarker: () => null
     }).addTo(map);
 
+    // Patch to prevent async routing callbacks from crashing after unmount
+    // @ts-ignore
+    if (control._clearLines) {
+      // @ts-ignore
+      const originalClearLines = control._clearLines;
+      // @ts-ignore
+      control._clearLines = function (...args: any[]) {
+        // @ts-ignore
+        if (this._map) {
+          // @ts-ignore
+          originalClearLines.apply(this, args);
+        }
+      };
+    }
+
+    // @ts-ignore
+    const originalOnRouteDone = control._routeDone || control._onRouteDone;
+    // @ts-ignore
+    const routeDoneKey = control._routeDone ? '_routeDone' : (control._onRouteDone ? '_onRouteDone' : null);
+    if (routeDoneKey && originalOnRouteDone) {
+      // @ts-ignore
+      control[routeDoneKey] = function (...args: any[]) {
+        // @ts-ignore
+        if (this._map) {
+          // @ts-ignore
+          originalOnRouteDone.apply(this, args);
+        }
+      };
+    }
+
     return () => {
       if (map && control) {
         try {
@@ -161,11 +214,22 @@ function RoutingControl({ userLocation, destination }: {
   return null;
 }
 
-export default function Map({ facilities, userLocation, onSelectFacility, selectedFacility }: MapProps) {
+export default function Map({ facilities, userLocation, onSelectFacility, selectedFacility, selectedKecamatanName, onSelectKecamatan }: MapProps) {
   const defaultCenter: [number, number] = [3.5952, 98.6722]; // Medan Center
   const center = userLocation || defaultCenter;
   const [boundaryData, setBoundaryData] = useState<any>(null);
   const [showLegend, setShowLegend] = useState(true);
+  const [internalSelectedKecamatan, setInternalSelectedKecamatan] = useState<string | null>(null);
+
+  const selectedKecamatan = selectedKecamatanName !== undefined ? selectedKecamatanName : internalSelectedKecamatan;
+
+  const handleKecamatanSelect = (name: string | null) => {
+    if (onSelectKecamatan) {
+      onSelectKecamatan(name);
+    } else {
+      setInternalSelectedKecamatan(name);
+    }
+  };
 
   // Load and convert GeoJSON boundary
   useEffect(() => {
@@ -223,14 +287,45 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
     return kecamatanColors[colorIndex];
   };
 
-  // Style function for the boundary
-  const boundaryStyle = (feature: any) => ({
-    color: "#64748b",
-    weight: 2,
-    opacity: 0.8,
-    fillOpacity: 0.3,
+  // Style function for the active boundary
+  const activeBoundaryStyle = (feature: any) => ({
+    color: "#3b82f6", // bold border color
+    weight: 3,
+    opacity: 1,
+    fillOpacity: 0.2, // transparent fill
     fillColor: getKecamatanColor(feature)
   });
+
+  const selectedFeature = selectedKecamatan 
+    ? boundaryData?.features?.find(
+        (f: any) => f.properties?.NAMOBJ?.replace(/\s+/g, '').toUpperCase() === selectedKecamatan.replace(/\s+/g, '').toUpperCase()
+      )
+    : null;
+
+  // Custom component to handle flyTo for the selected polygon
+  const PolygonFitter = ({ feature }: { feature: any }) => {
+    const map = useMap();
+    useEffect(() => {
+      if (feature) {
+        // Create a temporary geojson layer just to get bounds
+        const layer = L.geoJSON(feature);
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 });
+        }
+      }
+    }, [feature, map]);
+    return null;
+  };
+
+  const onEachFeature = (feature: any, layer: any) => {
+    layer.on({
+      click: (e: any) => {
+        // Prevent click from bubbling to the map so we don't accidentally deselect
+        L.DomEvent.stopPropagation(e);
+      }
+    });
+  };
 
   return (
     <>
@@ -245,9 +340,26 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {boundaryData && <GeoJSON data={boundaryData} style={boundaryStyle} />}
+      {selectedFeature && (
+        <>
+          <GeoJSON 
+            key={selectedKecamatan} 
+            data={selectedFeature} 
+            style={activeBoundaryStyle} 
+            onEachFeature={onEachFeature}
+          />
+          <PolygonFitter feature={selectedFeature} />
+        </>
+      )}
 
-      <MapEvents onMapClick={() => onSelectFacility(null)} />
+      <MapEvents 
+        onMapClick={() => {
+          onSelectFacility(null);
+        }} 
+        boundaryData={boundaryData}
+        onKecamatanSelect={handleKecamatanSelect}
+        selectedKecamatan={selectedKecamatan}
+      />
       
       {userLocation && (
         <Marker 

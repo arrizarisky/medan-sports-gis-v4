@@ -32,7 +32,7 @@ function convertFeature(feature: any): any {
 }
 
 // Point-in-polygon algorithm (Ray casting)
-function isPointInPolygon(point: [number, number], polygon: [number, number][]): boolean {
+export function isPointInPolygon(point: [number, number], polygon: [number, number][]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const xi = polygon[i][0], yi = polygon[i][1];
@@ -46,7 +46,7 @@ function isPointInPolygon(point: [number, number], polygon: [number, number][]):
 }
 
 // Check if point is in any polygon of a MultiPolygon
-function isPointInMultiPolygon(point: [number, number], multiPolygon: [number, number][][][]): boolean {
+export function isPointInMultiPolygon(point: [number, number], multiPolygon: [number, number][][][]): boolean {
   for (const polygon of multiPolygon) {
     for (const ring of polygon) {
       if (isPointInPolygon(point, ring)) {
@@ -55,6 +55,25 @@ function isPointInMultiPolygon(point: [number, number], multiPolygon: [number, n
     }
   }
   return false;
+}
+
+// Find kecamatan name from pre-loaded features
+export function findKecamatanInFeatures(lat: number, lng: number, features: any[]): string | null {
+  const point: [number, number] = [lng, lat];
+  for (const feature of features) {
+    if (feature.geometry.type === "MultiPolygon") {
+      if (isPointInMultiPolygon(point, feature.geometry.coordinates)) {
+        return feature.properties?.NAMOBJ || null;
+      }
+    } else if (feature.geometry.type === "Polygon") {
+      for (const ring of feature.geometry.coordinates) {
+        if (isPointInPolygon(point, ring)) {
+          return feature.properties?.NAMOBJ || null;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // Find kecamatan name from coordinates using GeoJSON

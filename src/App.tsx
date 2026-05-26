@@ -60,6 +60,21 @@ export default function App() {
     }
   };
 
+  const selectedKecamatanName = selectedKecamatan !== "all" 
+    ? kecamatanList.find(k => k.id === parseInt(selectedKecamatan))?.name || null
+    : null;
+
+  const handleKecamatanSelectFromMap = (name: string | null) => {
+    if (name) {
+      const k = kecamatanList.find(
+        k => k.name.replace(/\s+/g, '').toUpperCase() === name.replace(/\s+/g, '').toUpperCase()
+      );
+      if (k) setSelectedKecamatan(k.id.toString());
+    } else {
+      setSelectedKecamatan("all");
+    }
+  };
+
   useEffect(() => {
     fetchFacilities();
     fetchKecamatans();
@@ -484,7 +499,8 @@ export default function App() {
             userLocation={userLocation} 
             selectedFacility={selectedFacility}
             onSelectFacility={handleSelectFacility}
-            
+            selectedKecamatanName={selectedKecamatanName}
+            onSelectKecamatan={handleKecamatanSelectFromMap}
           />
 
           {/* Floating Action Buttons (Map View) */}
