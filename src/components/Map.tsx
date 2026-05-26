@@ -338,12 +338,17 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
   const onEachFeature = (feature: any, layer: any) => {
     const name = feature.properties?.NAMOBJ || "Unknown";
     
-    // Bind permanent tooltip showing the sub-district name
-    layer.bindTooltip(name, {
-      permanent: true,
-      direction: "center",
-      className: "kecamatan-tooltip",
-    });
+    const isSelected = selectedKecamatan && 
+      name.replace(/\s+/g, '').toUpperCase() === selectedKecamatan.replace(/\s+/g, '').toUpperCase();
+    
+    // Bind permanent tooltip showing the sub-district name ONLY if it is currently selected
+    if (isSelected) {
+      layer.bindTooltip(name, {
+        permanent: true,
+        direction: "center",
+        className: "kecamatan-tooltip",
+      });
+    }
 
     layer.on({
       click: (e: any) => {
