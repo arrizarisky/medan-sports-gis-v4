@@ -145,3 +145,31 @@
 @utility glass-panel {
   @apply bg-white/80 backdrop-blur-md border border-white/20 soft-shadow;
 }
+
+/* Premium Leaflet Tooltip Styling */
+.kecamatan-tooltip {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid oklch(0.922 0 0) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  color: oklch(0.145 0 0) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03) !important;
+  pointer-events: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.dark .kecamatan-tooltip {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: oklch(0.985 0 0) !important;
+}
+
+/* Hide default leaflet tooltip arrow for a clean badge look */
+.kecamatan-tooltip::before {
+  display: none !important;
+}

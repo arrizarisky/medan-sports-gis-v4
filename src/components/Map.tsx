@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
 import { Facility } from "@/src/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Star, Navigation, Info, Layers, X } from "lucide-react";
 import proj4 from "proj4";
 import { Card } from "@/components/ui/card";
@@ -287,6 +287,23 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
     return kecamatanColors[colorIndex];
   };
 
+  // Extract and sort unique kecamatan list from boundaryData
+  const kecamatanListFromGeoJSON = useMemo(() => {
+    if (!boundaryData || !boundaryData.features) return [];
+    
+    const uniqueKecamatans: Record<string, string> = {};
+    boundaryData.features.forEach((feature: any) => {
+      const name = feature.properties?.NAMOBJ;
+      if (name) {
+        uniqueKecamatans[name] = getKecamatanColor(feature);
+      }
+    });
+
+    return Object.entries(uniqueKecamatans)
+      .map(([name, color]) => ({ name, color }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [boundaryData]);
+
   // Style function for the active boundary
   const activeBoundaryStyle = (feature: any) => ({
     color: "#3b82f6", // bold border color
@@ -319,10 +336,20 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
   };
 
   const onEachFeature = (feature: any, layer: any) => {
+    const name = feature.properties?.NAMOBJ || "Unknown";
+    
+    // Bind permanent tooltip showing the sub-district name
+    layer.bindTooltip(name, {
+      permanent: true,
+      direction: "center",
+      className: "kecamatan-tooltip",
+    });
+
     layer.on({
       click: (e: any) => {
         // Prevent click from bubbling to the map so we don't accidentally deselect
         L.DomEvent.stopPropagation(e);
+        handleKecamatanSelect(name);
       }
     });
   };
@@ -340,17 +367,26 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {selectedFeature && (
-        <>
-          <GeoJSON 
-            key={selectedKecamatan} 
-            data={selectedFeature} 
-            style={activeBoundaryStyle} 
-            onEachFeature={onEachFeature}
-          />
-          <PolygonFitter feature={selectedFeature} />
-        </>
+      {boundaryData && (
+        <GeoJSON
+          key={selectedKecamatan || "all"}
+          data={boundaryData}
+          style={(feature: any) => {
+            const isSelected = selectedKecamatan && 
+              feature.properties?.NAMOBJ?.replace(/\s+/g, '').toUpperCase() === selectedKecamatan.replace(/\s+/g, '').toUpperCase();
+            
+            return {
+              color: isSelected ? "#3b82f6" : "#94a3b8", // bold blue border if selected, slate-400 border otherwise
+              weight: isSelected ? 3 : 1.5,
+              opacity: isSelected ? 1 : 0.4,
+              fillOpacity: isSelected ? 0.35 : 0.1,
+              fillColor: getKecamatanColor(feature)
+            };
+          }}
+          onEachFeature={onEachFeature}
+        />
       )}
+      {selectedFeature && <PolygonFitter feature={selectedFeature} />}
 
       <MapEvents 
         onMapClick={() => {
@@ -485,22 +521,40 @@ export default function Map({ facilities, userLocation, onSelectFacility, select
           </div>
 
           {/* Kecamatan Colors Section */}
-          <div>
-            <h4 className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 md:mb-2">Kecamatan Areas</h4>
-            <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
-              Each kecamatan has a unique color to distinguish boundaries.
-            </p>
-            <div className="flex flex-wrap gap-0.5 md:gap-1 mt-1 md:mt-2">
-              {kecamatanColors.slice(0, 10).map((color, index) => (
-                <div
-                  key={index}
-                  className="w-3 h-3 md:w-4 md:h-4 rounded-sm border border-slate-200"
-                  style={{ backgroundColor: color }}
-                  title={`Color ${index + 1}`}
-                />
-              ))}
-              <div className="text-[10px] md:text-xs text-muted-foreground ml-1 self-center">+10</div>
-            </div>
+          <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3">
+            <h4 className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Kecamatan Areas</h4>
+            {kecamatanListFromGeoJSON.length === 0 ? (
+              <p className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
+                Loading kecamatan boundaries...
+              </p>
+            ) : (
+              <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+                {kecamatanListFromGeoJSON.map((kec, index) => {
+                  const isSelected = selectedKecamatan && 
+                    kec.name.replace(/\s+/g, '').toUpperCase() === selectedKecamatan.replace(/\s+/g, '').toUpperCase();
+                  
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleKecamatanSelect(isSelected ? null : kec.name)}
+                      className={`flex items-center gap-2 w-full text-left p-1 rounded transition-colors group ${
+                        isSelected 
+                          ? "bg-primary/10 text-primary font-bold dark:bg-primary/20 dark:text-primary-foreground" 
+                          : "hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <div
+                        className="w-3.5 h-3.5 rounded-sm border border-slate-200 dark:border-slate-700 flex-shrink-0 group-hover:scale-110 transition-transform"
+                        style={{ backgroundColor: kec.color }}
+                      />
+                      <span className="text-[10px] md:text-xs truncate font-medium">
+                        {kec.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
       )}
